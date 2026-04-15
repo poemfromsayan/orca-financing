@@ -7,7 +7,7 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { InputField, Button } from '../../components/ui'
 import { useAuth } from '../../context/AuthContext'
-import orcaLogo from '/orca-logo.png'
+import orcaLogo from '../../assets/logo/orcalogo2.png'
 
 export default function SignUpPage() {
   const navigate = useNavigate()
