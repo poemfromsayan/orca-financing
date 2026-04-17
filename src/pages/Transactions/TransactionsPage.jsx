@@ -196,7 +196,7 @@ export default function TransactionsPage() {
                       name={tx.name}
                       category={tx.category}
                       date={tx.date}
-                      amount={tx.displayAmount}
+                      amount={tx.amount}
                       type={tx.type}
                       onDelete={deleteTransaction}
                     />

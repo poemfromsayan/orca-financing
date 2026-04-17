@@ -9,15 +9,16 @@
  *   name     : string  — nombre de la transacción
  *   category : string  — categoría (Subscription, Income, Service…)
  *   date     : string  — fecha (e.g. "Mar 22")
- *   amount   : string  — monto con signo (e.g. "-$20.00" o "+$50.00")
+ *   amount   : number  — monto en USD (raw, sin formato)
  *   type     : "income" | "expense"
  *   onDelete : (id) => void — opcional, activa el swipe-to-delete
  */
 
 import { motion, useMotionValue, useTransform } from 'framer-motion'
+import { useCurrency } from '../../context/CurrencyContext'
 
-const DRAG_THRESHOLD = -72   // distancia máxima de arrastre en px
-const SNAP_THRESHOLD = -36   // si sueltas aquí, regresa al origen
+const DRAG_THRESHOLD = -72
+const SNAP_THRESHOLD = -36
 
 export default function TransactionCard({
   id, name, category, date, amount, type = 'expense', onDelete,
@@ -25,16 +26,14 @@ export default function TransactionCard({
   const initial  = name?.charAt(0).toUpperCase() ?? '?'
   const isIncome = type === 'income'
 
-  // Motion value del arrastre horizontal
+  const { formatDisplayAmount } = useCurrency()
+
   const x = useMotionValue(0)
 
-  // El botón de trash se vuelve opaco conforme la card se desplaza
   const trashOpacity = useTransform(x, [DRAG_THRESHOLD, SNAP_THRESHOLD], [1, 0])
   const trashScale   = useTransform(x, [DRAG_THRESHOLD, SNAP_THRESHOLD], [1, 0.6])
 
   const handleDragEnd = (_, info) => {
-    // Si el usuario no arrastró lo suficiente, la card vuelve sola (springBack)
-    // Si llega al umbral, se queda abierta mostrando el botón
     if (info.offset.x > SNAP_THRESHOLD) {
       x.set(0)
     }
@@ -102,7 +101,7 @@ export default function TransactionCard({
           text-body font-bold leading-none shrink-0
           ${isIncome ? 'text-success-400' : 'text-destructive-400'}
         `}>
-          {amount}
+          {formatDisplayAmount(amount, type)}
         </p>
       </motion.div>
 

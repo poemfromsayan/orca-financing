@@ -84,4 +84,3 @@ Create a `.env.local` file at the project root with:
 
 VITE_SUPABASE_URL=my_supabase_url
 VITE_SUPABASE_ANON_KEY=my_anon_key
-

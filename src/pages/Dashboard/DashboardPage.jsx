@@ -13,6 +13,7 @@ import NavBar from '../../components/layout/NavBar'
 import SpendingBarChart from '../../components/charts/SpendingBarChart'
 import { TransactionCard } from '../../components/ui'
 import { useTransactions } from '../../context/TransactionContext'
+import { useCurrency } from '../../context/CurrencyContext'
 
 function BalanceCard({ balance }) {
   return (
@@ -33,19 +34,21 @@ function BalanceCard({ balance }) {
 export default function DashboardPage() {
   const navigate = useNavigate()
   const {
-    formattedBalance,
+    balance,
     recentTransactions,
     weeklyData,
     weeklyTotal,
     weeklyActiveIndex,
   } = useTransactions()
 
+  const { formatAmount } = useCurrency()
+
   return (
     <div className="flex flex-col w-full max-w-[393px] min-h-screen bg-neutral-950 pb-[92px]">
 
       {/* Balance Card */}
       <div className="px-6 pt-10">
-        <BalanceCard balance={formattedBalance} />
+        <BalanceCard balance={formatAmount(balance)} />
       </div>
 
       {/* Gráfica de barras semanal */}
@@ -71,7 +74,7 @@ export default function DashboardPage() {
               name={tx.name}
               category={tx.category}
               date={tx.date}
-              amount={tx.displayAmount}
+              amount={tx.amount}
               type={tx.type}
             />
           ))}

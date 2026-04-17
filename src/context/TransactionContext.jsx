@@ -4,7 +4,6 @@
  * Fuente de verdad: tabla `transactions` en Supabase (por usuario).
  * Valores derivados calculados localmente desde las transacciones:
  *   - balance         : INITIAL_BALANCE + ingresos - gastos
- *   - formattedBalance: formato europeo "$670.028,00"
  *   - weeklyData      : gastos por día de la semana actual
  *   - monthlyData     : gastos por semana del mes actual
  *   - recentTransactions: últimas 3 para el Dashboard
@@ -19,7 +18,7 @@ import { supabase } from '../lib/supabase'
 
 const TransactionContext = createContext(null)
 
-const INITIAL_BALANCE = 670028.00
+const INITIAL_BALANCE = 0
 const STORAGE_KEY_BUDGETS = 'orca_budgets'
 
 // ── Helpers de fecha ──────────────────────────────────────────────────────────
@@ -39,10 +38,6 @@ const computeGroup = (isoDate) => {
   if (tx.toDateString() === yesterday.toDateString()) return 'YESTERDAY'
   return tx.toLocaleDateString('en-US', { month: 'long', day: 'numeric' })
 }
-
-/** "+$20.00" / "-$20.00" */
-const formatAmount = (amount, type) =>
-  `${type === 'income' ? '+' : '-'}$${parseFloat(amount).toFixed(2)}`
 
 // ── Cómputo de gráficas ───────────────────────────────────────────────────────
 
@@ -146,7 +141,6 @@ export function TransactionProvider({ children }) {
         ...tx,
         date:          formatDisplayDate(tx.created_at),
         group:         computeGroup(tx.created_at),
-        displayAmount: formatAmount(tx.amount, tx.type),
       }))
 
       setTransactions(enriched)
@@ -198,7 +192,6 @@ export function TransactionProvider({ children }) {
       ...data,
       date:          formatDisplayDate(data.created_at),
       group:         computeGroup(data.created_at),
-      displayAmount: formatAmount(data.amount, data.type),
     }
     setTransactions((prev) => [enriched, ...prev])
     return true
@@ -267,7 +260,6 @@ export function TransactionProvider({ children }) {
   )
 
   const recentTransactions = transactions.slice(0, 3)
-  const formattedBalance   = formatEU(balance)
 
   const weeklyData         = computeWeeklyData(transactions)
   const weeklyActiveIndex  = maxIndex(weeklyData)
@@ -284,7 +276,6 @@ export function TransactionProvider({ children }) {
         recentTransactions,
         txLoading,
         balance,
-        formattedBalance,
         addTransaction,
         deleteTransaction,
         resetData,

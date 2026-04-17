@@ -5,11 +5,10 @@
  *   - Avatar editable (foto de perfil) + nombre editable
  *   - Stats: balance actual, total de transacciones, gastos e ingresos
  *   - Acceso a Monthly Budgets
+ *   - Currency selector
+ *   - Appearance toggle (dark/light mode)
  *   - Data Management: reset con confirmación inline
  *   - Logout
- *
- * La foto se comprime en canvas (200×200 JPEG) antes de guardarse
- * en localStorage para no exceder el límite de almacenamiento.
  */
 
 import { useState, useRef } from 'react'
@@ -18,6 +17,7 @@ import { useAuth } from '../../context/AuthContext'
 import { useNavigate, Link } from 'react-router-dom'
 import NavBar from '../../components/layout/NavBar'
 import { useTransactions } from '../../context/TransactionContext'
+import { useCurrency } from '../../context/CurrencyContext'
 
 // ── Íconos ────────────────────────────────────────────────────────────────────
 
@@ -83,10 +83,6 @@ function CameraIcon() {
 }
 
 // ── Compresor de imagen ───────────────────────────────────────────────────────
-/**
- * Recibe un File de imagen, lo recorta al centro en un cuadrado,
- * lo reduce a 200×200px y lo retorna como base64 JPEG (calidad 0.75).
- */
 const compressImage = (file) =>
   new Promise((resolve, reject) => {
     const reader = new FileReader()
@@ -100,12 +96,9 @@ const compressImage = (file) =>
         canvas.width  = SIZE
         canvas.height = SIZE
         const ctx = canvas.getContext('2d')
-
-        // Recorte cuadrado centrado
         const side = Math.min(img.width, img.height)
         const sx   = (img.width  - side) / 2
         const sy   = (img.height - side) / 2
-
         ctx.drawImage(img, sx, sy, side, side, 0, 0, SIZE, SIZE)
         resolve(canvas.toDataURL('image/jpeg', 0.75))
       }
@@ -127,13 +120,14 @@ function StatRow({ label, value }) {
 // ── Page ─────────────────────────────────────────────────────────────────────
 export default function ProfilePage() {
   const navigate = useNavigate()
-  const { formattedBalance, transactions, resetData } = useTransactions()
+  const { balance, transactions, resetData } = useTransactions()
   const { isDark, toggleTheme } = useTheme()
   const { signOut } = useAuth()
+  const { formatAmount, currency, currencies, changeCurrency } = useCurrency()
 
   // ── Foto de perfil ──────────────────────────────────────────────────────────
   const fileInputRef = useRef(null)
-  const [photo, setPhoto]           = useState(() => localStorage.getItem('orca_user_photo') || null)
+  const [photo, setPhoto]               = useState(() => localStorage.getItem('orca_user_photo') || null)
   const [photoLoading, setPhotoLoading] = useState(false)
 
   const handleAvatarClick = () => fileInputRef.current?.click()
@@ -141,10 +135,7 @@ export default function ProfilePage() {
   const handleFileChange = async (e) => {
     const file = e.target.files?.[0]
     if (!file) return
-
-    // Acepta solo imágenes
     if (!file.type.startsWith('image/')) return
-
     setPhotoLoading(true)
     try {
       const compressed = await compressImage(file)
@@ -154,7 +145,6 @@ export default function ProfilePage() {
       // Si falla la compresión, no hacemos nada
     } finally {
       setPhotoLoading(false)
-      // Reset input para permitir seleccionar el mismo archivo de nuevo
       e.target.value = ''
     }
   }
@@ -201,46 +191,24 @@ export default function ProfilePage() {
 
       {/* ── Avatar + nombre ── */}
       <div className="flex flex-col items-center gap-4 px-6 pb-8">
-
-        {/* Avatar — clic abre el selector de archivo */}
         <div className="relative group">
           <button
             onClick={handleAvatarClick}
             disabled={photoLoading}
             aria-label="Change profile photo"
-            className="
-              size-20 rounded-full overflow-hidden
-              relative flex items-center justify-center
-              cursor-pointer focus:outline-none
-            "
+            className="size-20 rounded-full overflow-hidden relative flex items-center justify-center cursor-pointer focus:outline-none"
           >
-            {/* Foto o inicial */}
             {photo ? (
-              <img
-                src={photo}
-                alt="Profile"
-                className="size-full object-cover"
-              />
+              <img src={photo} alt="Profile" className="size-full object-cover" />
             ) : (
               <div className="size-full bg-brand-500 flex items-center justify-center text-display font-bold text-white select-none">
                 {photoLoading ? '…' : initial}
               </div>
             )}
-
-            {/* Overlay con ícono de cámara — aparece en hover/focus */}
-            <div className="
-              absolute inset-0 rounded-full
-              bg-black/50
-              flex items-center justify-center
-              opacity-0 group-hover:opacity-100
-              transition-opacity duration-200
-              text-white
-            ">
+            <div className="absolute inset-0 rounded-full bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200 text-white">
               <CameraIcon />
             </div>
           </button>
-
-          {/* Input oculto */}
           <input
             ref={fileInputRef}
             type="file"
@@ -251,7 +219,6 @@ export default function ProfilePage() {
           />
         </div>
 
-        {/* Enlace para quitar la foto (solo si hay foto) */}
         {photo && (
           <button
             onClick={removePhoto}
@@ -261,7 +228,6 @@ export default function ProfilePage() {
           </button>
         )}
 
-        {/* Nombre editable */}
         {editing ? (
           <div className="flex items-center gap-2">
             <input
@@ -269,18 +235,9 @@ export default function ProfilePage() {
               value={draft}
               onChange={(e) => setDraft(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && saveName()}
-              className="
-                bg-neutral-900 border border-neutral-700 rounded-md
-                px-3 py-2 text-body text-neutral-50 text-center
-                outline-none focus:border-brand-500
-                transition-colors w-[180px]
-              "
+              className="bg-neutral-900 border border-neutral-700 rounded-md px-3 py-2 text-body text-neutral-50 text-center outline-none focus:border-brand-500 transition-colors w-[180px]"
             />
-            <button
-              onClick={saveName}
-              className="text-brand-500 hover:text-neutral-50 transition-colors cursor-pointer"
-              aria-label="Save name"
-            >
+            <button onClick={saveName} className="text-brand-500 hover:text-neutral-50 transition-colors cursor-pointer" aria-label="Save name">
               <CheckIcon />
             </button>
           </div>
@@ -300,10 +257,31 @@ export default function ProfilePage() {
 
       {/* Stats */}
       <div className="mx-6 mb-5 bg-neutral-900 border border-neutral-800 rounded-xl px-5 py-1">
-        <StatRow label="Current Balance"    value={formattedBalance} />
+        <StatRow label="Current Balance"    value={formatAmount(balance)} />
         <StatRow label="Total Transactions" value={String(transactions.length)} />
         <StatRow label="Expenses recorded"  value={String(totalExpenses)} />
         <StatRow label="Income recorded"    value={String(totalIncome)} />
+      </div>
+
+      {/* Currency selector */}
+      <div className="mx-6 mb-5 bg-neutral-900 border border-neutral-800 rounded-xl px-5 py-4">
+        <p className="text-sm font-medium text-neutral-400 mb-3">Currency</p>
+        <div className="grid grid-cols-2 gap-2">
+          {currencies.map((c) => (
+            <button
+              key={c.code}
+              onClick={() => changeCurrency(c.code)}
+              className={`flex items-center gap-2 px-4 py-3 rounded-xl border text-sm font-medium transition-colors cursor-pointer
+                ${currency === c.code
+                  ? 'bg-brand-500 border-brand-500 text-white'
+                  : 'bg-neutral-950 border-neutral-800 text-neutral-400 hover:border-neutral-600'
+                }`}
+            >
+              <span className="text-base">{c.symbol}</span>
+              <span>{c.code}</span>
+            </button>
+          ))}
+        </div>
       </div>
 
       {/* Appearance toggle */}
@@ -320,25 +298,12 @@ export default function ProfilePage() {
               </p>
             </div>
           </div>
-
-          {/* Switch */}
           <button
             onClick={toggleTheme}
             aria-label="Toggle theme"
-            className={`
-              relative inline-flex h-6 w-11 shrink-0 cursor-pointer
-              rounded-full border-2 border-transparent
-              transition-colors duration-300 ease-in-out focus:outline-none
-              ${isDark ? 'bg-brand-500' : 'bg-neutral-300'}
-            `}
+            className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-300 ease-in-out focus:outline-none ${isDark ? 'bg-brand-500' : 'bg-neutral-300'}`}
           >
-            <span
-              className={`
-                pointer-events-none inline-block size-5 rounded-full
-                bg-white shadow transform transition-transform duration-300 ease-in-out
-                ${isDark ? 'translate-x-5' : 'translate-x-0'}
-              `}
-            />
+            <span className={`pointer-events-none inline-block size-5 rounded-full bg-white shadow transform transition-transform duration-300 ease-in-out ${isDark ? 'translate-x-5' : 'translate-x-0'}`} />
           </button>
         </div>
       </div>
@@ -365,7 +330,6 @@ export default function ProfilePage() {
         <p className="text-caption text-neutral-600 leading-relaxed">
           Resets all transactions and restores the original balance. This action cannot be undone.
         </p>
-
         {!confirmReset ? (
           <button
             onClick={() => setConfirmReset(true)}

@@ -11,6 +11,7 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { expenseCategories } from '../../data/mockData'
 import { useTransactions } from '../../context/TransactionContext'
+import { useCurrency } from '../../context/CurrencyContext'
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -21,14 +22,14 @@ const barColor = (percent) => {
   return 'bg-brand-500'
 }
 
-const fmt = (n) =>
-  '$' + n.toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
-
 // ── BudgetCard ────────────────────────────────────────────────────────────────
 function BudgetCard({ category, setBudget, getBudgetProgress }) {
   const { limit, spent, percent } = getBudgetProgress(category.name)
   const [editing, setEditing]     = useState(false)
   const [draft, setDraft]         = useState(limit > 0 ? String(limit) : '')
+
+  const { formatAmount, currencies, currency } = useCurrency()
+  const currentCurrency = currencies.find(c => c.code === currency)
 
   const save = () => {
     setBudget(category.name, draft)
@@ -46,14 +47,14 @@ function BudgetCard({ category, setBudget, getBudgetProgress }) {
           <p className="text-body text-neutral-50 font-medium">{category.name}</p>
           {hasLimit && (
             <p className="text-caption text-neutral-500 mt-0.5">
-              {fmt(spent)} of {fmt(limit)}
+              {formatAmount(spent)} of {formatAmount(limit)}
             </p>
           )}
         </div>
 
         {editing ? (
           <div className="flex items-center gap-2">
-            <span className="text-sm text-neutral-400">$</span>
+            <span className="text-sm text-neutral-400">{currentCurrency?.symbol}</span>
             <input
               autoFocus
               type="number"
@@ -100,7 +101,7 @@ function BudgetCard({ category, setBudget, getBudgetProgress }) {
         <p className={`text-caption font-medium ${
           percent >= 100 ? 'text-destructive-400' :
           percent >= 75  ? 'text-warning-500' :
-                           'text-neutral-500'
+                            'text-neutral-500'
         }`}>
           {percent}% used
           {percent >= 100 && ' — Over budget!'}
