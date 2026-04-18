@@ -14,6 +14,7 @@ import { useNavigate } from 'react-router-dom'
 import { InputField, Button } from '../../components/ui'
 import { expenseCategories, incomeCategories } from '../../data/mockData'
 import { useTransactions } from '../../context/TransactionContext'
+import { useCurrency } from '../../context/CurrencyContext'
 
 // ── Teclado numérico ──────────────────────────────────────────────────────────
 const KEYS = ['1','2','3','4','5','6','7','8','9','.','0','⌫']
@@ -42,9 +43,9 @@ function NumericKeypad({ onKey }) {
 
 // ── Dropdown de categoría ─────────────────────────────────────────────────────
 function CategoryDropdown({ value, onChange, txType }) {
-  const [open, setOpen]               = useState(false)
-  const [hoveredCat, setHoveredCat]   = useState(null)
-  const hoverTimer                    = useRef(null)
+  const [open, setOpen]             = useState(false)
+  const [hoveredCat, setHoveredCat] = useState(null)
+  const hoverTimer                  = useRef(null)
 
   const options = txType === 'income' ? incomeCategories : expenseCategories
 
@@ -91,7 +92,6 @@ function CategoryDropdown({ value, onChange, txType }) {
           "
           onPointerLeave={clearHover}
         >
-          {/* Lista scrolleable */}
           <div className="max-h-[220px] overflow-y-auto dropdown-scroll">
             {options.map((cat) => (
               <button
@@ -112,7 +112,6 @@ function CategoryDropdown({ value, onChange, txType }) {
             ))}
           </div>
 
-          {/* Zona de descripción — fuera del scroll, no afecta el layout de los botones */}
           <div className={`
             border-t border-neutral-800 px-4 overflow-hidden
             transition-all duration-200
@@ -132,6 +131,9 @@ function CategoryDropdown({ value, onChange, txType }) {
 export default function AddTransactionPage() {
   const navigate = useNavigate()
   const { addTransaction } = useTransactions()
+  const { rates, currency, currencies } = useCurrency()
+
+  const currentSymbol = currencies.find(c => c.code === currency)?.symbol ?? '$'
 
   const [txType, setTxType]     = useState('expense')
   const [name, setName]         = useState('')
@@ -160,7 +162,10 @@ export default function AddTransactionPage() {
       return
     }
 
-    const saved = addTransaction({ name, amount, category, type: txType })
+    // Convertir el monto ingresado (en la moneda activa) a USD antes de guardar
+    const amountInUSD = parseFloat(amount) / (rates[currency] ?? 1)
+
+    const saved = addTransaction({ name, amount: amountInUSD, category, type: txType })
     if (saved) navigate('/')
   }
 
@@ -212,7 +217,7 @@ export default function AddTransactionPage() {
           onChange={(e) => setName(e.target.value)}
         />
         <InputField
-          label="Amount"
+          label={`Amount (${currentSymbol})`}
           value={amount}
           onChange={(e) => setAmount(e.target.value)}
           readOnly

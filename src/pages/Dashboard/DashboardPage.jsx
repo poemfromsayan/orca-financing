@@ -63,7 +63,7 @@ export default function DashboardPage() {
 
       {/* Recent Transactions */}
       <div className="px-6 pt-8 pb-6 flex flex-col gap-6">
-        <h2 className="text-h2 font-semibold text-neutral-200">
+        <h2 className="text-h2 font-semibold text-neutral-400">
           Recent Transactions
         </h2>
 
