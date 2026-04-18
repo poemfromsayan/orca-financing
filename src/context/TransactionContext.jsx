@@ -99,9 +99,6 @@ const maxIndex = (data) =>
 
 const sumData = (data) => data.reduce((s, b) => s + b.value, 0)
 
-const formatEU = (n) =>
-  '$' + n.toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
-
 // ── Provider ──────────────────────────────────────────────────────────────────
 
 export function TransactionProvider({ children }) {
@@ -263,11 +260,11 @@ export function TransactionProvider({ children }) {
 
   const weeklyData         = computeWeeklyData(transactions)
   const weeklyActiveIndex  = maxIndex(weeklyData)
-  const weeklyTotal        = formatEU(sumData(weeklyData))
+  const weeklyTotal        = sumData(weeklyData)
 
   const monthlyData        = computeMonthlyData(transactions)
   const monthlyActiveIndex = maxIndex(monthlyData)
-  const monthlyTotal       = formatEU(sumData(monthlyData))
+  const monthlyTotal       = sumData(monthlyData)
 
   return (
     <TransactionContext.Provider
