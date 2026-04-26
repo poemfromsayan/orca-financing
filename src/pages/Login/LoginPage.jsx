@@ -4,10 +4,11 @@
  */
 
 import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
-import { InputField, Button } from '../../components/ui'
-import { useAuth } from '../../context/AuthContext'
-import orcaLogo from '../../assets/logo/orcalogo2.png'
+import { Link, useNavigate } from 'react-router-dom'
+import InputField from '../../components/ui/InputField'
+import Button from '../../components/ui/Button'
+import logo from '../../assets/logo/orcalogo2.png'
+import { supabase } from '../../supabase/supabaseClient'
 
 export default function LoginPage() {
   const navigate = useNavigate()
@@ -72,6 +73,7 @@ export default function LoginPage() {
         <div className="flex justify-end -mt-2 px-2">
           <button
             type="button"
+            onClick={() => navigate('/forgot-password')}
             className="text-caption font-medium text-neutral-500 hover:text-neutral-300 transition-colors cursor-pointer"
           >
             Forgot Password?

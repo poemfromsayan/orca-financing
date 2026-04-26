@@ -23,6 +23,8 @@ import TransactionsPage   from './pages/Transactions/TransactionsPage'
 import AddTransactionPage from './pages/AddTransaction/AddTransactionPage'
 import ProfilePage        from './pages/Profile/ProfilePage'
 import BudgetsPage        from './pages/Budgets/BudgetsPage'
+import ForgotPasswordPage from './pages/ForgotPassword/ForgotPasswordPage'
+import ResetPasswordPage  from './pages/ResetPassword/ResetPasswordPage'
 
 // Variantes de animación — fade + desplazamiento vertical sutil
 const variants = {
@@ -78,6 +80,8 @@ export default function App() {
             {/* Públicas */}
             <Route path="/login"  element={<PublicRoute><LoginPage /></PublicRoute>} />
             <Route path="/signup" element={<PublicRoute><SignUpPage /></PublicRoute>} />
+            <Route path="/forgot-password" element={<PublicRoute><ForgotPasswordPage /></PublicRoute>} />
+            <Route path="/reset-password"  element={<ResetPasswordPage />} />
 
             {/* Protegidas */}
             <Route path="/"             element={<ProtectedRoute><DashboardPage /></ProtectedRoute>} />
