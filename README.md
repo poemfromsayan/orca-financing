@@ -77,10 +77,3 @@ Deployment platform. The app deploys automatically with every push to the reposi
 **Live:** https://orca-financing.vercel.app
 
 ---
-
-## Environment Variables
-
-Create a `.env.local` file at the project root with:
-
-VITE_SUPABASE_URL = https://wmrlpvpyumeynkgyaxjl.supabase.co
-VITE_SUPABASE_ANON_KEY = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndtcmxwdnB5dW1leW5rZ3lheGpsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYwMjkyOTUsImV4cCI6MjA5MTYwNTI5NX0.bzu7baNihOcPO5NZKxSR24YNC2JKqVg6I4cvVXb2mCo
